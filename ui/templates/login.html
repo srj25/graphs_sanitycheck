@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+
+{% block script %}
+<script>
+$( function() {
+    let
+    email = $( "#email" ),
+    password = $( "#password" ),
+    allFields = $( [] ).add( email ).add( password )
+
+    function updateTips( t ) {
+      $("#validateTips").text(t).addClass( "ui-state-highlight" );
+      setTimeout(function() {
+        $("#validateTips").removeClass( "ui-state-highlight", 1500 );
+      }, 500 );
+    }
+
+    function checkLength( o, n, min, max ) {
+      if ( o.val().length > max || o.val().length < min ) {
+        o.addClass( "ui-state-error" );
+        updateTips( "Length of " + n + " must be between " +
+          min + " and " + max + "." );
+        return false;
+      } else {
+        return true;
+      }
+    }
+
+    function checkRegexp( o, regexp, n ) {
+      if ( !( regexp.test( o.val() ) ) ) {
+        o.addClass( "ui-state-error" );
+        updateTips( n );
+        return false;
+      } else {
+        return true;
+      }
+    }
+
+    function validateFields() {
+      let valid = true;
+      allFields.removeClass( "ui-state-error" );
+      valid = valid && checkLength( email, "email", {{NAME_MIN_LEN}}, {{NAME_MAX_LEN}} );
+      valid = valid && checkLength( password, "password", {{PWORD_MIN_LEN}}, {{PWORD_MAX_LEN}} );
+      valid = valid && checkRegexp( email, /{{NAME_REGEX}}/i, "Username may only consist of a-z, 0-9, underscores, dashes, and spaces" );
+      return valid;
+    }
+
+    $( "#dialog-form" ).dialog({
+      autoOpen: false,
+      height: 600,
+      width: 600,
+      modal: true,
+        buttons:{
+          "Register": function(){
+              $("#register-form").submit();
+          },
+            Cancel: function(){
+                $("#dialog-form").dialog("close");
+            }
+        },
+      close: function() {
+        $("#register-form")[0].reset();
+        allFields.removeClass( "ui-state-error" );
+        $("#validateTips").text("All form fields are required.");
+      }
+    });
+
+    $("#register-form" ).on( "submit", function( event ) {
+        let valid = validateFields();
+        if(!valid){
+            event.preventDefault();
+        }
+    });
+
+    $( "#register" ).button().on( "click", function() {
+      $( "#dialog-form" ).dialog("open");
+    });
+
+  });
+</script>
+{% endblock %}
+
+
+
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center page-title">
+        <div class="col">
+            <h1>Welcome to Graphs for Good</h1>
+            <img src="{{url_for('static', filename='logo.png')}}" width="10%"/>
+            <h3>Helping people help people, one graph at a time</h3>
+        </div>
+    </div>
+    <div align="center">
+    <div class='error'>{{error_msg if error_msg != None}}</div>
+    <div class='success'>{{msg if msg != None}}</div>
+    <form action='{{url_for('login_register')}}' method='post'>
+
+         <div >
+        <label align="center">Email</label>
+        <input type='text' name='email' value='{{email if email  != None}}'>
+        </div>
+        <div>
+        <label align="center">Password</label>
+        <input type='password' name='password'>
+
+        </div>
+        <div>
+            <input type="submit" value="Login">
+        </div>
+
+    </form>
+    </div>
+</div>
+
+<div class="container">
+    <button id="register"><p>Not registered? Click here to sign up!</p></button>
+</div>
+
+<div id="dialog-form" title="New User Registration">
+    <div>
+        <p id="validateTips">All form fields are required.</p>
+    </div>
+
+  <form id="register-form" action='{{url_for('register_new_user')}}' method='post'>
+    <fieldset>
+      <div>
+          <label for="email">Email: </label>
+          <input type="text" name="email" id="email" class="text ui-widget-content ui-corner-all form-control" pattern="^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$">
+      </div>
+        <div id="firstLast" class="form-row">
+            <div class="col">
+                <label for="firstname">First Name</label>
+                <input id="firstname" name="firstname" type="text" class="text ui-widget-content ui-corner-all form-control" >
+            </div>
+            <div class="col">
+                <label for="lastname">Last Name</label>
+                <input id="lastname" name="lastname" type="text" class="text ui-widget-content ui-corner-all form-control" >
+            </div>
+        </div>
+      <div>
+          <label for="password">Password: </label>
+          <input type="password" name="password" id="password" class="text ui-widget-content ui-corner-all form-control">
+      </div>
+      <div>
+          <label for="passwordConfirm">Password Confirm: </label>
+          <input type="password" name="passwordConfirm" id="passwordConfirm" class="text ui-widget-content ui-corner-all form-control">
+      </div>
+      <div>
+            <!-- Allow form submission with keyboard without duplicating the dialog button -->
+          <input id="register-submit" type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+      </div>
+    </fieldset>
+  </form>
+</div>
+
+{% endblock %}
